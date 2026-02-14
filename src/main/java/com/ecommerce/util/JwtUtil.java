@@ -18,7 +18,7 @@ public class JwtUtil {
     @Value("${jwt.secret:mySecretKeyForJWTTokenGenerationThatIsAtLeast256BitsLongForHS256Algorithm}")
     private String secret;
     
-    @Value("${jwt.expiration:86400000}") // 24 hours in milliseconds
+    @Value("${jwt.expiration:900000}") // 15 minutes in milliseconds
     private Long expiration;
     
     private SecretKey getSigningKey() {

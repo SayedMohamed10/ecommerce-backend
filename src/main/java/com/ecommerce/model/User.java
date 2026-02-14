@@ -33,8 +33,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
     
-    @NotBlank(message = "Password is required")
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String password;
     
     @Column(name = "phone_number")
@@ -48,9 +47,35 @@ public class User {
     @Column(nullable = false)
     private Boolean enabled = true;
     
+    // Email Verification
     @Column(name = "email_verified")
     private Boolean emailVerified = false;
     
+    // Account Lockout
+    @Column(name = "account_locked")
+    private Boolean accountLocked = false;
+    
+    @Column(name = "failed_login_attempts")
+    private Integer failedLoginAttempts = 0;
+    
+    @Column(name = "lockout_time")
+    private LocalDateTime lockoutTime;
+    
+    // Two-Factor Authentication
+    @Column(name = "two_factor_enabled")
+    private Boolean twoFactorEnabled = false;
+    
+    @Column(name = "two_factor_secret")
+    private String twoFactorSecret;
+    
+    // OAuth2
+    @Column(name = "oauth_provider")
+    private String oauthProvider;
+    
+    @Column(name = "oauth_id")
+    private String oauthId;
+    
+    // Timestamps
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -59,8 +84,41 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+    
     public enum Role {
         USER,
         ADMIN
+    }
+    
+    // Helper methods for account lockout
+    public void incrementFailedAttempts() {
+        this.failedLoginAttempts++;
+    }
+    
+    public void resetFailedAttempts() {
+        this.failedLoginAttempts = 0;
+        this.accountLocked = false;
+        this.lockoutTime = null;
+    }
+    
+    public void lockAccount() {
+        this.accountLocked = true;
+        this.lockoutTime = LocalDateTime.now();
+    }
+    
+    public boolean isAccountLocked() {
+        if (!accountLocked) {
+            return false;
+        }
+        
+        // Auto-unlock after 30 minutes
+        if (lockoutTime != null && lockoutTime.plusMinutes(30).isBefore(LocalDateTime.now())) {
+            resetFailedAttempts();
+            return false;
+        }
+        
+        return true;
     }
 }
