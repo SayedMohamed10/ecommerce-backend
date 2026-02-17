@@ -201,11 +201,6 @@ public class ProductService {
             maxPrice != null ? maxPrice : BigDecimal.valueOf(10000)
         );
     }
-    
-    // Continues in next part...
-package com.ecommerce.service;
-
-// This is Part 2 - Add these methods to the ProductService class from Part 1
 
     // Create product
     @Transactional
