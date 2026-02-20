@@ -83,8 +83,8 @@ public class Product {
     
     @Column(length = 500)
     private String dimensions;
-    
-    @Column(name = "average_rating", precision = 2, scale = 1)
+
+    @Column(name = "average_rating")
     private Double averageRating = 0.0;
     
     @Column(name = "review_count")
