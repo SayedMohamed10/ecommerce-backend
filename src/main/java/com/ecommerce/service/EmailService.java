@@ -1,10 +1,16 @@
 package com.ecommerce.service;
 
+import com.ecommerce.model.Order;
+import com.ecommerce.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailService {
@@ -12,84 +18,55 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
     
-    @Value("${spring.mail.username}")
+    @Value("${spring.mail.username:noreply@ecommerce.com}")
     private String fromEmail;
     
-    @Value("${app.base-url}")
+    @Value("${app.base-url:http://localhost:3000}")
     private String baseUrl;
     
-    public void sendVerificationEmail(String toEmail, String token) {
-        String subject = "Email Verification - E-Commerce App";
-        String verificationUrl = baseUrl + "/api/auth/verify-email?token=" + token;
-        
-        String body = "Dear User,\n\n" +
-                "Thank you for registering with our E-Commerce platform!\n\n" +
-                "Please click the link below to verify your email address:\n" +
-                verificationUrl + "\n\n" +
-                "This link will expire in 24 hours.\n\n" +
-                "If you did not create an account, please ignore this email.\n\n" +
-                "Best regards,\n" +
-                "E-Commerce Team";
-        
-        sendEmail(toEmail, subject, body);
+    // Send welcome email
+    @Async
+    public void sendWelcomeEmail(User user) {
+        String subject = "Welcome to Our E-Commerce Store!";
+        String body = "<h1>Welcome " + user.getName() + "!</h1><p>Thank you for joining us.</p>";
+        sendHtmlEmail(user.getEmail(), subject, body);
     }
     
-    public void sendPasswordResetEmail(String toEmail, String token) {
-        String subject = "Password Reset Request - E-Commerce App";
-        String resetUrl = baseUrl + "/api/auth/reset-password?token=" + token;
-        
-        String body = "Dear User,\n\n" +
-                "We received a request to reset your password.\n\n" +
-                "Please click the link below to reset your password:\n" +
-                resetUrl + "\n\n" +
-                "This link will expire in 1 hour.\n\n" +
-                "If you did not request a password reset, please ignore this email and your password will remain unchanged.\n\n" +
-                "Best regards,\n" +
-                "E-Commerce Team";
-        
-        sendEmail(toEmail, subject, body);
+    // Send order confirmation email
+    @Async
+    public void sendOrderConfirmationEmail(Order order) {
+        String subject = "Order Confirmation - " + order.getOrderNumber();
+        String body = "<h1>Order Confirmed!</h1>" +
+                "<p>Thank you for your order, " + order.getUser().getName() + "!</p>" +
+                "<p>Order Number: " + order.getOrderNumber() + "</p>" +
+                "<p>Total: $" + order.getTotalAmount() + "</p>";
+        sendHtmlEmail(order.getUser().getEmail(), subject, body);
     }
     
-    public void sendAccountLockedEmail(String toEmail) {
-        String subject = "Account Locked - Security Alert";
-        
-        String body = "Dear User,\n\n" +
-                "Your account has been locked due to multiple failed login attempts.\n\n" +
-                "For security reasons, your account will be automatically unlocked after 30 minutes.\n\n" +
-                "If you did not attempt to login, please reset your password immediately.\n\n" +
-                "Best regards,\n" +
-                "E-Commerce Team";
-        
-        sendEmail(toEmail, subject, body);
+    // Send order shipped email
+    @Async
+    public void sendOrderShippedEmail(Order order) {
+        String subject = "Your Order Has Been Shipped - " + order.getOrderNumber();
+        String body = "<h1>Order Shipped!</h1>" +
+                "<p>Your order " + order.getOrderNumber() + " is on the way!</p>" +
+                "<p>Tracking: " + order.getTrackingNumber() + "</p>";
+        sendHtmlEmail(order.getUser().getEmail(), subject, body);
     }
     
-    public void sendTwoFactorCode(String toEmail, String code) {
-        String subject = "Two-Factor Authentication Code";
-        
-        String body = "Dear User,\n\n" +
-                "Your two-factor authentication code is:\n\n" +
-                code + "\n\n" +
-                "This code will expire in 5 minutes.\n\n" +
-                "If you did not request this code, please contact support immediately.\n\n" +
-                "Best regards,\n" +
-                "E-Commerce Team";
-        
-        sendEmail(toEmail, subject, body);
-    }
-    
-    private void sendEmail(String to, String subject, String body) {
+    // Generic method to send HTML email
+    private void sendHtmlEmail(String to, String subject, String htmlBody) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(body);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlBody, true);
             
             mailSender.send(message);
-        } catch (Exception e) {
-            // Log the error
+        } catch (MessagingException e) {
             System.err.println("Failed to send email: " + e.getMessage());
-            // In production, you might want to throw a custom exception
         }
     }
 }
