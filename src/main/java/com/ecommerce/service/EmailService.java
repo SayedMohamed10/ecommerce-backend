@@ -69,4 +69,44 @@ public class EmailService {
             System.err.println("Failed to send email: " + e.getMessage());
         }
     }
+
+    // Send email verification
+    @Async
+    public void sendVerificationEmail(String email, String token) {
+        String subject = "Verify Your Email Address";
+
+        String verificationLink = baseUrl + "/verify?token=" + token;
+
+        String body = "<h1>Email Verification</h1>" +
+                "<p>Please click the link below to verify your email:</p>" +
+                "<a href=\"" + verificationLink + "\">Verify Email</a>";
+
+        sendHtmlEmail(email, subject, body);
+    }
+
+    // Send password reset email
+    @Async
+    public void sendPasswordResetEmail(String email, String token) {
+        String subject = "Reset Your Password";
+
+        String resetLink = baseUrl + "/reset-password?token=" + token;
+
+        String body = "<h1>Password Reset</h1>" +
+                "<p>Click the link below to reset your password:</p>" +
+                "<a href=\"" + resetLink + "\">Reset Password</a>";
+
+        sendHtmlEmail(email, subject, body);
+    }
+
+    // Send account locked email
+    @Async
+    public void sendAccountLockedEmail(String email) {
+        String subject = "Account Locked";
+
+        String body = "<h1>Account Locked</h1>" +
+                "<p>Your account has been locked due to multiple failed login attempts.</p>" +
+                "<p>Please contact support.</p>";
+
+        sendHtmlEmail(email, subject, body);
+    }
 }
