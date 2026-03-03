@@ -96,4 +96,17 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     boolean existsBySlug(String slug);
     
     boolean existsBySku(String sku);
+
+    // Stock-based queries
+    List<Product> findByStockLessThan(Integer threshold);
+    List<Product> findByStock(int stock);
+
+    // Active status queries
+    long countByActiveTrue();
+    long countByActiveFalse();
+    long countByStockLessThan(int threshold);
+    long countByStock(int stock);
 }
+
+
+

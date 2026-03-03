@@ -59,4 +59,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
            "AND (LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(r.comment) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Review> searchReviewsByProductId(@Param("productId") Long productId, @Param("keyword") String keyword, Pageable pageable);
+
+    long countByStatus(Review.ReviewStatus status);
+
+
 }
